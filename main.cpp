@@ -21,18 +21,18 @@ constexpr uint32_t windowStartHeight = 600;
 
 float vertices[] = {
     -0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.0f,  0.5f, 0.0f
+    0.5f, -0.5f, 0.0f,
+    0.0f, 0.5f, 0.0f
 };
-const char* vertexShaderSource = "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-    "}\0";
+const char *vertexShaderSource = "#version 330 core\n"
+        "layout (location = 0) in vec3 aPos;\n"
+        "void main()\n"
+        "{\n"
+        "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+        "}\0";
 
 struct AppContext {
-    SDL_Window* window;
+    SDL_Window *window;
     SDL_AudioDeviceID audioDevice;
     SDL_AppResult app_quit = SDL_APP_CONTINUE;
 };
@@ -48,9 +48,8 @@ SDL_AppResult SDL_Fail() {
     return SDL_APP_FAILURE;
 }
 
-SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
-    if (not SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO))
-    {
+SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
+    if (not SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
         return SDL_Fail();
     }
 
@@ -59,7 +58,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 
-    SDL_Window* window = SDL_CreateWindow(
+    SDL_Window *window = SDL_CreateWindow(
         "OpenGL Test",
         windowStartWidth,
         windowStartHeight,
@@ -111,7 +110,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     if (!success) {
         char infoLog[512];
         glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
-        SDL_LogError(0,"Vertex shader error: compilation failed!\n%s", infoLog);
+        SDL_LogError(0, "Vertex shader error: compilation failed!\n%s", infoLog);
         return SDL_APP_FAILURE;
     }
     SDL_Log("Vertex shader successfully compiled");
@@ -121,8 +120,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
         SDL_GetWindowSize(window, &width, &height);
         SDL_GetWindowSizeInPixels(window, &bbwidth, &bbheight);
         SDL_Log("Backbuffer size: %ix%i", bbwidth, bbheight);
-        if (width != bbwidth)
-        {
+        if (width != bbwidth) {
             SDL_Log("This is a highdpi environment.");
         }
     }
@@ -136,14 +134,14 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     return SDL_APP_CONTINUE;
 }
 
-void processInput(AppContext* app, const SDL_Event* event) {
+void processInput(AppContext *app, const SDL_Event *event) {
     if (event->key.key == SDLK_ESCAPE) {
         app->app_quit = SDL_APP_SUCCESS;
     }
 }
 
-SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
-    auto* app = (AppContext*)appstate;
+SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
+    auto *app = (AppContext *) appstate;
 
     switch (event->type) {
         case SDL_EVENT_KEY_UP:
@@ -163,8 +161,8 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
     return app->app_quit;
 }
 
-SDL_AppResult SDL_AppIterate(void* appstate) {
-    const auto* app = (AppContext*)appstate;
+SDL_AppResult SDL_AppIterate(void *appstate) {
+    const auto *app = (AppContext *) appstate;
 
     glClear(ClearBufferMask::GL_COLOR_BUFFER_BIT);
 
@@ -174,10 +172,9 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
     return app->app_quit;
 }
 
-void SDL_AppQuit(void* appstate, SDL_AppResult result) {
-    const auto* app = (AppContext*)appstate;
-    if (app)
-    {
+void SDL_AppQuit(void *appstate, SDL_AppResult result) {
+    const auto *app = (AppContext *) appstate;
+    if (app) {
         SDL_DestroyWindow(app->window);
         delete app;
     }

@@ -12,6 +12,8 @@
 #include <glbinding-aux/ValidVersions.h>
 #include <glbinding-aux/debug.h>
 
+// #include "./RenderEngine.h"
+
 using namespace std;
 using namespace gl33core;
 using namespace glbinding;
@@ -20,21 +22,35 @@ constexpr uint32_t windowStartWidth = 800;
 constexpr uint32_t windowStartHeight = 600;
 
 float vertices[] = {
-    -0.5f, -0.5f, 0.0f,
-    0.5f, -0.5f, 0.0f,
-    0.0f, 0.5f, 0.0f
+    0.5f,  0.5f, 0.0f,  // top right
+    0.5f, -0.5f, 0.0f,  // bottom right
+   -0.5f, -0.5f, 0.0f,  // bottom left
+   -0.5f,  0.5f, 0.0f   // top left
 };
+unsigned int indices[] = {  // note that we start from 0!
+    0, 1, 3,   // first triangle
+    1, 2, 3    // second triangle
+};
+
 const char *vertexShaderSource = "#version 330 core\n"
         "layout (location = 0) in vec3 aPos;\n"
-        "void main()\n"
-        "{\n"
+        "void main() {\n"
         "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
         "}\0";
+const char *fragmentShaderSource = "#version 330 core\n"
+        "out vec4 FragColor;\n"
+        "void main() {\n"
+        "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+        "}\0";
+
+bool wireframe = false;
 
 struct AppContext {
     SDL_Window *window;
     SDL_AudioDeviceID audioDevice;
-    SDL_AppResult app_quit = SDL_APP_CONTINUE;
+    unsigned int shaderProgram;
+    unsigned int VAO;
+    SDL_AppResult controlFlow = SDL_APP_CONTINUE;
 };
 
 void framebuffer_resize(SDL_Window *window) {
@@ -54,7 +70,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     }
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 
@@ -97,23 +113,78 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     unsigned int VBO;
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    // We create the shader (shader = GPU program)
+    unsigned int VAO;
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+
+    unsigned int EBO;
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    // Shader stuff
+
+    // We create the vertex shader (shader = GPU program)
     unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    // We attach it to the vertex source code
+    // We attach it to the vertex shader source code
     glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
     // We compile the shader
     glCompileShader(vertexShader);
 
-    int success;
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        char infoLog[512];
-        glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
-        SDL_LogError(0, "Vertex shader error: compilation failed!\n%s", infoLog);
-        return SDL_APP_FAILURE;
+    // Now we do the same but for the fragment shader
+    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
+    glCompileShader(fragmentShader);
+
+    // We just verify if everything went well
+    {
+        int success;
+        glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+        if (!success) {
+            char infoLog[512];
+            glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
+            SDL_LogError(0, "Vertex shader error: compilation failed!\n%s", infoLog);
+            return SDL_APP_FAILURE;
+        }
+        SDL_Log("Vertex shader successfully compiled");
+
+        glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+        if (!success) {
+            char infoLog[512];
+            glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
+            SDL_LogError(0, "Fragment shader error: compilation failed!\n%s", infoLog);
+            return SDL_APP_FAILURE;
+        }
+        SDL_Log("Fragment shader successfully compiled");
     }
-    SDL_Log("Vertex shader successfully compiled");
+
+    // We can then create the shader program and link the shader objects to it
+    unsigned int shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+
+    {
+        int success;
+        glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+        if (!success) {
+            char infoLog[512];
+            glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
+            SDL_LogError(0, "Shader program error: link failed!\n%s", infoLog);
+            return SDL_APP_FAILURE;
+        }
+        SDL_Log("Shader objects successfully linked to shader program");
+    }
+
+    // Poor OpenGL doesn't know how to interpret the vertex data
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // We delete the leftover shader objects (I'm sorry for them)
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
 
     {
         int width, height, bbwidth, bbheight;
@@ -127,7 +198,9 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
     *appstate = new AppContext{
         .window = window,
-        .app_quit = SDL_APP_CONTINUE,
+        .shaderProgram = shaderProgram,
+        .VAO = VAO,
+        .controlFlow = SDL_APP_CONTINUE,
     };
 
     SDL_Log("App initialized successfully!");
@@ -136,7 +209,16 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
 void processInput(AppContext *app, const SDL_Event *event) {
     if (event->key.key == SDLK_ESCAPE) {
-        app->app_quit = SDL_APP_SUCCESS;
+        app->controlFlow = SDL_APP_SUCCESS;
+    }
+    if (event->key.key == SDLK_A && event->key.down) {
+        if (wireframe == false) {
+            wireframe = true;
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        } else {
+            wireframe = false;
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
     }
 }
 
@@ -154,11 +236,11 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
             SDL_Log("Window resized: %ix%i", width, height);
             break;
         case SDL_EVENT_QUIT:
-            app->app_quit = SDL_APP_SUCCESS;
+            app->controlFlow = SDL_APP_SUCCESS;
             break;
     }
 
-    return app->app_quit;
+    return app->controlFlow;
 }
 
 SDL_AppResult SDL_AppIterate(void *appstate) {
@@ -166,10 +248,15 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     glClear(ClearBufferMask::GL_COLOR_BUFFER_BIT);
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+    glUseProgram(app->shaderProgram);
+    glBindVertexArray(app->VAO);
 
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+    glBindVertexArray(0);
     SDL_GL_SwapWindow(app->window);
-    return app->app_quit;
+
+    return app->controlFlow;
 }
 
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {

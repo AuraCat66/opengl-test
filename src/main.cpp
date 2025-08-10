@@ -12,7 +12,7 @@
 #include <glbinding-aux/ValidVersions.h>
 #include <glbinding-aux/debug.h>
 
-// #include "./RenderEngine.h"
+// #include "RenderEngine.h"
 
 using namespace std;
 using namespace gl33core;

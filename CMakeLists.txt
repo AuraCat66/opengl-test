@@ -26,7 +26,8 @@ endif ()
 add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
 add_subdirectory(vendored/glbinding EXCLUDE_FROM_ALL)
 
-add_executable(${EXECUTABLE_NAME} main.cpp)
+add_executable(${EXECUTABLE_NAME} src/main.cpp)
+#        src/RenderEngine.cpp)
 
 target_link_libraries(
         ${EXECUTABLE_NAME} PUBLIC

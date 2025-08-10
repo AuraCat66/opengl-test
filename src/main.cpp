@@ -3,8 +3,8 @@
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_init.h>
 
-#include "glbinding/glbinding.h"
-#include "glbinding/gl33core/gl.h"
+#include <glbinding/glbinding.h>
+#include <glbinding/gl33core/gl.h>
 
 #include <glbinding-aux/ContextInfo.h>
 #include <glbinding-aux/Meta.h>
@@ -22,14 +22,15 @@ constexpr uint32_t windowStartWidth = 800;
 constexpr uint32_t windowStartHeight = 600;
 
 float vertices[] = {
-    0.5f,  0.5f, 0.0f,  // top right
-    0.5f, -0.5f, 0.0f,  // bottom right
-   -0.5f, -0.5f, 0.0f,  // bottom left
-   -0.5f,  0.5f, 0.0f   // top left
+    0.5f, 0.5f, 0.0f, // top right
+    0.5f, -0.5f, 0.0f, // bottom right
+    -0.5f, -0.5f, 0.0f, // bottom left
+    -0.5f, 0.5f, 0.0f // top left
 };
-unsigned int indices[] = {  // note that we start from 0!
-    0, 1, 3,   // first triangle
-    1, 2, 3    // second triangle
+unsigned int indices[] = {
+    // note that we start from 0!
+    0, 1, 3, // first triangle
+    1, 2, 3 // second triangle
 };
 
 const char *vertexShaderSource = "#version 330 core\n"
@@ -179,7 +180,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     }
 
     // Poor OpenGL doesn't know how to interpret the vertex data
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(0);
 
     // We delete the leftover shader objects (I'm sorry for them)

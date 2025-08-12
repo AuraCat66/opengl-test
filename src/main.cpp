@@ -32,21 +32,21 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
     RenderEngine renderer;
 
-    RenderEngine::setAttributes();
+    if (const auto appResult = RenderEngine::setAttributes(); appResult == SDL_APP_FAILURE) {
+        return SDL_APP_FAILURE;
+    }
 
     auto *window = renderer.createWindow(
         "OpenGL Test",
         windowStartWidth, windowStartHeight,
         SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY
     );
+    if (not window) {
+        return SDL_Fail();
+    }
 
-    switch (const auto appResult = renderer.init()) {
-        case SDL_APP_SUCCESS:
-            return appResult;
-        case SDL_APP_FAILURE:
-            return SDL_Fail();
-        default:
-            break;
+    if (const auto appResult = renderer.init(); appResult == SDL_APP_FAILURE) {
+        return SDL_APP_FAILURE;
     }
 
     {
@@ -64,7 +64,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
         .controlFlow = SDL_APP_CONTINUE,
     };
 
-    SDL_Log("App initialized successfully!");
+    SDL_Log("Application initialized successfully!");
     return SDL_APP_CONTINUE;
 }
 

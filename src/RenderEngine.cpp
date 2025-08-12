@@ -28,13 +28,14 @@ inline unsigned int indices[] = {
     1, 2, 3 // second triangle
 };
 
-inline const char *vertexShaderSource = "#version 330 core\n"
+const char *vertexShaderSource = "#version 330 core\n"
         "layout (location = 0) in vec3 aPos;\n"
         "void main() {\n"
         "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
         "}\0";
-inline const char *fragmentShaderSource = "#version 330 core\n"
+const char *fragmentShaderSource = "#version 330 core\n"
         "out vec4 FragColor;\n"
+        "uniform vec4 ourColor;\n"
         "void main() {\n"
         "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
         "}\0";
@@ -45,11 +46,15 @@ void RenderEngine::viewport_resize() const {
     glViewport(0, 0, width, height);
 }
 
-void RenderEngine::setAttributes() {
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+SDL_AppResult RenderEngine::setAttributes() {
+    if (not SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3)
+        || not SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3)
+        || not SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
+        || not SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG)) {
+        return SDL_Fail();
+    }
+
+    return SDL_APP_CONTINUE;
 }
 
 /**

@@ -17,7 +17,7 @@ public:
 
     void viewport_resize() const;
 
-    static void setAttributes();
+    static SDL_AppResult setAttributes();
 
     SDL_Window *createWindow(
         const char *title,

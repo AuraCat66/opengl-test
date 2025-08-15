@@ -102,13 +102,13 @@ void Shader::use() const {
 }
 
 void Shader::setBool(const std::string &name, const bool value) const {
- glUniform1i(glGetUniformLocation(this->ID, name.c_str()), value);
+    glUniform1i(glGetUniformLocation(this->ID, name.c_str()), value);
 }
 
 void Shader::setInt(const std::string &name, const int value) const {
- glUniform1i(glGetUniformLocation(this->ID, name.c_str()), value);
+    glUniform1i(glGetUniformLocation(this->ID, name.c_str()), value);
 }
 
 void Shader::setFloat(const std::string &name, const float value) const {
- glUniform1f(glGetUniformLocation(this->ID, name.c_str()), value);
+    glUniform1f(glGetUniformLocation(this->ID, name.c_str()), value);
 }

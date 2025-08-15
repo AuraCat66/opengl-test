@@ -3,8 +3,9 @@
 #ifndef OPENGL_TEST_RENDERENGINE_H
 #define OPENGL_TEST_RENDERENGINE_H
 
-#include "Shader.h"
 #include "SDL3/SDL.h"
+
+#include "Shader.h"
 
 struct AppContext;
 
@@ -15,7 +16,6 @@ public:
 
     bool wireframe = false;
     unsigned int VAO{};
-    unsigned int shaderProgram{};
 
     void viewport_resize() const;
 

@@ -92,10 +92,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
         case SDL_EVENT_KEY_DOWN:
             processInput(app, event);
         case SDL_EVENT_WINDOW_RESIZED:
-            int width, height;
-            SDL_GetWindowSizeInPixels(app->renderer.window, &width, &height);
             app->renderer.viewport_resize();
-            SDL_Log("Window resized: %ix%i", width, height);
             break;
         case SDL_EVENT_QUIT:
             app->controlFlow = SDL_APP_SUCCESS;

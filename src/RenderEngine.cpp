@@ -102,7 +102,7 @@ SDL_AppResult RenderEngine::init() {
 
     // Shader stuff
 
-    if (this->shader.init("./shaders/shader.vs", "./shaders/shader.fs") == SDL_APP_FAILURE) {
+    if (this->shader.init("./shaders/shader.vsh", "./shaders/shader.fsh") == SDL_APP_FAILURE) {
         return SDL_APP_FAILURE;
     };
 

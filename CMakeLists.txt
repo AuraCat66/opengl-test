@@ -40,14 +40,14 @@ add_executable(${EXECUTABLE_NAME} src/main.cpp
 
 # We make it so our program cannot compile without the shader files
 set_property(SOURCE src/main.cpp PROPERTY OBJECT_DEPENDS
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/shader.vs
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/shader.fs)
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/shader.vsh
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/shader.fsh)
 
 # We create the shaders/ directory where the compiled executable will be put
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Debug/shaders)
 # We move the shader files one by one (I'm sure there is a better way to do this)
-file(COPY_FILE src/shaders/shader.vs ${CMAKE_CURRENT_BINARY_DIR}/Debug/shaders/shader.vs)
-file(COPY_FILE src/shaders/shader.fs ${CMAKE_CURRENT_BINARY_DIR}/Debug/shaders/shader.fs)
+file(COPY_FILE src/shaders/shader.vsh ${CMAKE_CURRENT_BINARY_DIR}/Debug/shaders/shader.vsh)
+file(COPY_FILE src/shaders/shader.fsh ${CMAKE_CURRENT_BINARY_DIR}/Debug/shaders/shader.fsh)
 
 # We link the libraries
 target_link_libraries(

@@ -20,6 +20,9 @@ if (POLICY CMP0141)
     set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 endif ()
 
+# On Visual Studio, set our app as the default project
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT "${EXECUTABLE_NAME}")
+
 # Configure SDL and other libraries by calling their CMake file.
 # we use EXCLUDE_FROM_ALL so that their install targets and configs don't
 # pollute upwards into our configuration.
@@ -31,8 +34,22 @@ add_executable(${EXECUTABLE_NAME} src/main.cpp
         src/RenderEngine.h
         src/helperFunctions.h
         src/AppContext.h
+        src/Shader.cpp
+        src/Shader.h
 )
 
+# We make it so our program cannot compile without the shader files
+set_property(SOURCE src/main.cpp PROPERTY OBJECT_DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/shader.vs
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/shader.fs)
+
+# We create the shaders/ directory where the compiled executable will be put
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Debug/shaders)
+# We move the shader files one by one (I'm sure there is a better way to do this)
+file(COPY_FILE src/shaders/shader.vs ${CMAKE_CURRENT_BINARY_DIR}/Debug/shaders/shader.vs)
+file(COPY_FILE src/shaders/shader.fs ${CMAKE_CURRENT_BINARY_DIR}/Debug/shaders/shader.fs)
+
+# We link the libraries
 target_link_libraries(
         ${EXECUTABLE_NAME} PUBLIC
         glbinding::glbinding
@@ -40,6 +57,3 @@ target_link_libraries(
         SDL3::SDL3
 )
 target_compile_definitions(${EXECUTABLE_NAME} PUBLIC SDL_MAIN_USE_CALLBACKS)
-
-# On Visual Studio, set our app as the default project
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT "${EXECUTABLE_NAME}")

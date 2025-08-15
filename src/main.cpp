@@ -1,16 +1,16 @@
 #include <iostream>
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
-#include <SDL3/SDL_init.h>
+#include "SDL3/SDL.h"
+#include "SDL3/SDL_main.h"
+#include "SDL3/SDL_init.h"
 
-#include <glbinding/glbinding.h>
-#include <glbinding/gl33core/gl.h>
+#include "glbinding/glbinding.h"
+#include "glbinding/gl33core/gl.h"
 
-#include <glbinding-aux/ContextInfo.h>
-#include <glbinding-aux/Meta.h>
-#include <glbinding-aux/types_to_string.h>
-#include <glbinding-aux/ValidVersions.h>
-#include <glbinding-aux/debug.h>
+#include "glbinding-aux/ContextInfo.h"
+#include "glbinding-aux/Meta.h"
+#include "glbinding-aux/types_to_string.h"
+#include "glbinding-aux/ValidVersions.h"
+#include "glbinding-aux/debug.h"
 
 #include "AppContext.h"
 #include "RenderEngine.h"

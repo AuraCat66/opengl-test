@@ -3,12 +3,14 @@
 #ifndef OPENGL_TEST_RENDERENGINE_H
 #define OPENGL_TEST_RENDERENGINE_H
 
-#include <SDL3/SDL.h>
+#include "Shader.h"
+#include "SDL3/SDL.h"
 
 struct AppContext;
 
 class RenderEngine {
 public:
+    Shader shader;
     SDL_Window *window{};
 
     bool wireframe = false;

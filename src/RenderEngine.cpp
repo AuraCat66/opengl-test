@@ -11,6 +11,8 @@
 #include "glbinding-aux/ValidVersions.h"
 #include "glbinding-aux/debug.h"
 
+#include "../vendored/stb_image.h"
+
 #include "AppContext.h"
 #include "helperFunctions.h"
 
@@ -19,10 +21,16 @@ using namespace gl33core;
 using namespace glbinding;
 
 float vertices[] = {
-    // positions         // colors
-    0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
-    -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
-    0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f // top
+    // positions          // colors           // texture coords
+    0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+    0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+   -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+   -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left
+};
+
+unsigned int indices[] = {  // note that we start from 0!
+    0, 1, 3,   // first triangle
+    1, 2, 3    // second triangle
 };
 
 void RenderEngine::viewport_resize() const {
@@ -55,7 +63,7 @@ SDL_Window *RenderEngine::createWindow(
     const int w, const int h,
     const SDL_WindowFlags flags = 0
 ) {
-    window = SDL_CreateWindow(
+    this->window = SDL_CreateWindow(
         title,
         w,
         h,
@@ -93,6 +101,11 @@ SDL_AppResult RenderEngine::init() {
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
+    unsigned int EBO;
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
     // Create our vertex buffer object which will store vertices
     // TODO: Later on we could put it in a model loading function
     unsigned int VBO;
@@ -100,19 +113,38 @@ SDL_AppResult RenderEngine::init() {
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    // Shader stuff
+    stbi_set_flip_vertically_on_load(true);
+    
+    int width, height, nrChannels;
+    unsigned char *data = stbi_load("./textures/container.jpg", &width, &height, &nrChannels, 0);
+
+    glGenTextures(1, &this->texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    if (data) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    } else {
+        SDL_Log("Render engine error: Failed to load texture");
+        return SDL_APP_FAILURE;
+    }
+    stbi_image_free(data);
 
     if (this->shader.init("./shaders/shader.vsh", "./shaders/shader.fsh") == SDL_APP_FAILURE) {
         return SDL_APP_FAILURE;
     };
 
     // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(0);
 
     // Color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) (3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) (3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    // Texture attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     SDL_Log("OpenGL renderer successfully initialized");
 
@@ -125,7 +157,7 @@ SDL_AppResult RenderEngine::render(const AppContext *app) const {
     glUseProgram(this->shader.ID);
 
     glBindVertexArray(this->VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     // We swap the buffers
     if (not SDL_GL_SwapWindow(this->window)) {

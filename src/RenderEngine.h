@@ -16,6 +16,7 @@ public:
 
     bool wireframe = false;
     unsigned int VAO{};
+    unsigned int texture{};
 
     void viewport_resize() const;
 

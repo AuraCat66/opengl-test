@@ -36,6 +36,7 @@ add_executable(${EXECUTABLE_NAME} src/main.cpp
         src/AppContext.h
         src/Shader.cpp
         src/Shader.h
+        vendored/stb_image.h
 )
 
 # We make it so our program cannot compile without the shader files
@@ -43,11 +44,12 @@ set_property(SOURCE src/main.cpp PROPERTY OBJECT_DEPENDS
         ${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/shader.vsh
         ${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/shader.fsh)
 
-# We create the shaders/ directory where the compiled executable will be put
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Debug/shaders)
-# We move the shader files one by one (I'm sure there is a better way to do this)
-file(COPY_FILE src/shaders/shader.vsh ${CMAKE_CURRENT_BINARY_DIR}/Debug/shaders/shader.vsh)
-file(COPY_FILE src/shaders/shader.fsh ${CMAKE_CURRENT_BINARY_DIR}/Debug/shaders/shader.fsh)
+# We copy important folders to where the compiled executable is
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/shaders/)
+file(COPY src/shaders/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/shaders/)
+
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/textures/)
+file(COPY src/textures/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/textures/)
 
 # We link the libraries
 target_link_libraries(
@@ -57,3 +59,5 @@ target_link_libraries(
         SDL3::SDL3
 )
 target_compile_definitions(${EXECUTABLE_NAME} PUBLIC SDL_MAIN_USE_CALLBACKS)
+# Enables the vendored/stb_image.h library
+target_compile_definitions(${EXECUTABLE_NAME} PUBLIC STB_IMAGE_IMPLEMENTATION)

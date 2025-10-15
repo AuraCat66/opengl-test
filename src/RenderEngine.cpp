@@ -114,7 +114,7 @@ SDL_AppResult RenderEngine::init() {
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     stbi_set_flip_vertically_on_load(true);
-    
+
     int width, height, nrChannels;
     unsigned char *data = stbi_load("./textures/container.jpg", &width, &height, &nrChannels, 0);
 
